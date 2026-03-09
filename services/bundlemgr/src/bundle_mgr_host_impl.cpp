@@ -34,6 +34,7 @@
 #include "bundle_resource_helper.h"
 #ifdef DISTRIBUTED_BUNDLE_FRAMEWORK
 #include "distributed_bms_proxy.h"
+#include "distributed_bundle_mgr_client.h"
 #endif
 #include "hitrace_meter.h"
 #include "installd_client.h"
@@ -3347,12 +3348,8 @@ bool BundleMgrHostImpl::GetDistributedBundleInfo(const std::string &networkId, c
         APP_LOGE("verify permission failed");
         return false;
     }
-    auto distributedBundleMgr = GetDistributedBundleMgrService();
-    if (distributedBundleMgr == nullptr) {
-        APP_LOGE("DistributedBundleMgrService is nullptr");
-        return false;
-    }
-    return distributedBundleMgr->GetDistributedBundleInfo(networkId, bundleName, distributedBundleInfo);
+    return DistributedBundleMgrClient::GetInstance()->GetDistributedBundleInfo(
+        networkId, bundleName, distributedBundleInfo);
 #else
     APP_LOGW("DISTRIBUTED_BUNDLE_FRAMEWORK is false");
     return false;
@@ -3544,20 +3541,6 @@ const std::shared_ptr<BundleDataMgr> BundleMgrHostImpl::GetDataMgrFromService()
 {
     return DelayedSingleton<BundleMgrService>::GetInstance()->GetDataMgr();
 }
-
-#ifdef DISTRIBUTED_BUNDLE_FRAMEWORK
-const OHOS::sptr<IDistributedBms> BundleMgrHostImpl::GetDistributedBundleMgrService()
-{
-    auto saMgr = OHOS::SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (saMgr == nullptr) {
-        APP_LOGE("saMgr is nullptr");
-        return nullptr;
-    }
-    OHOS::sptr<OHOS::IRemoteObject> remoteObject =
-        saMgr->CheckSystemAbility(OHOS::DISTRIBUTED_BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
-    return OHOS::iface_cast<IDistributedBms>(remoteObject);
-}
-#endif
 
 #ifdef BUNDLE_FRAMEWORK_FREE_INSTALL
 const std::shared_ptr<BundleConnectAbilityMgr> BundleMgrHostImpl::GetConnectAbilityMgrFromService()

@@ -24,9 +24,6 @@
 #include "bundle_common_event_mgr.h"
 #include "bundle_data_mgr.h"
 #include "bundle_mgr_host.h"
-#ifdef DISTRIBUTED_BUNDLE_FRAMEWORK
-#include "distributed_bms_interface.h"
-#endif
 #include "event_report.h"
 #include "inner_bundle_user_info.h"
 
@@ -1282,9 +1279,6 @@ private:
     ErrCode MigrateDataParameterCheck(std::vector<std::string> &sourcePaths, std::string &destinationPath);
     ErrCode CheckSandboxPath(std::vector<std::string> &sourcePaths, std::string &destinationPath);
     const std::shared_ptr<BundleDataMgr> GetDataMgrFromService();
-#ifdef DISTRIBUTED_BUNDLE_FRAMEWORK
-    const OHOS::sptr<IDistributedBms> GetDistributedBundleMgrService();
-#endif
 #ifdef BUNDLE_FRAMEWORK_FREE_INSTALL
     const std::shared_ptr<BundleConnectAbilityMgr> GetConnectAbilityMgrFromService();
 #endif
