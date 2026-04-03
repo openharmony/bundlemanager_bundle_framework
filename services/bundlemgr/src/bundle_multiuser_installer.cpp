@@ -28,6 +28,7 @@
 #include "hitrace_meter.h"
 #include "installd_client.h"
 #include "perf_profile.h"
+#include "share_file_helper.h"
 #include "scope_guard.h"
 
 
@@ -193,6 +194,15 @@ ErrCode BundleMultiUserInstaller::ProcessBundleInstall(const std::string &bundle
     } else {
         newUserInfo.firstInstallTime = info.IsPreInstallApp() ? ServiceConstants::PREINSTALL_FIRST_INSTALL_TIME : now;
     }
+
+#ifdef BMS_ACCESSCONTROL_SANDBOX_MANAGER
+    ret = ProcessBundleShareFiles(info, userId, newTokenIdEx.tokenIdExStruct.tokenID);
+    if (ret != ERR_OK) {
+        APP_LOGW("InstallExisted process shareFiles failed, bundle=%{public}s, ret=%{public}d",
+            bundleName.c_str(), ret);
+        return ret;
+    }
+#endif
 
     ScopeGuard createUserDataDirGuard([&] { RemoveDataDir(bundleName, userId); });
     ErrCode result = CreateDataDir(info, userId, uid);
@@ -371,6 +381,47 @@ void BundleMultiUserInstaller::DeleteUninstallBundleInfo(const std::string &bund
         LOG_E(BMS_TAG_INSTALLER, "delete failed");
     }
     BundleResourceHelper::DeleteUninstallBundleResource(bundleName, userId, 0);
+}
+
+ErrCode BundleMultiUserInstaller::ProcessBundleShareFiles(const InnerBundleInfo &info,
+    const int32_t userId, uint32_t tokenId)
+{
+    const std::string &bundleName = info.GetBundleName();
+    LOG_D(BMS_TAG_INSTALLER, "ProcessBundleShareFiles begin, bundleName=%{public}s, userId=%{public}d",
+        bundleName.c_str(), userId);
+    if (GetDataMgr() != ERR_OK) {
+        LOG_E(BMS_TAG_INSTALLER, "get dataMgr failed");
+        return ERR_APPEXECFWK_INSTALL_INTERNAL_ERROR;
+    }
+    auto moduleInfos = info.GetInnerModuleInfos();
+    for (const auto &modulePair : moduleInfos) {
+        const InnerModuleInfo &moduleInfo = modulePair.second;
+        // 只处理 entry 模块
+        if (!moduleInfo.isEntry) {
+            continue;
+        }
+        // Get shareFiles JSON from hap
+        std::string shareFilesJson;
+        ErrCode ret = dataMgr_->GetShareFilesJsonFromHap(moduleInfo.hapPath, moduleInfo, shareFilesJson);
+        if (ret != ERR_OK) {
+            LOG_E(BMS_TAG_INSTALLER,
+                "Failed to get shareFiles json for bundle=%{public}s, module=%{public}s, ret=%{public}d",
+                bundleName.c_str(), moduleInfo.moduleName.c_str(), ret);
+            return ret;
+        }
+        int32_t setResult = ShareFileHelper::SetShareFileInfo(shareFilesJson, bundleName, userId, tokenId);
+        if (setResult != 0) {
+            LOG_E(BMS_TAG_INSTALLER, "Failed to set shareFileInfo for bundle=%{public}s, ret=%{public}d",
+                bundleName.c_str(), setResult);
+            return ERR_APPEXECFWK_INSTALL_FAILED_SET_SHARE_FILES_FAIL;
+        }
+        LOG_D(BMS_TAG_INSTALLER,
+            "Successfully set shareFileInfo for bundle=%{public}s, module=%{public}s, userId=%{public}d",
+            bundleName.c_str(), moduleInfo.moduleName.c_str(), userId);
+        return ERR_OK;
+    }
+    LOG_D(BMS_TAG_INSTALLER, "No shareFiles configuration found for bundle=%{public}s", bundleName.c_str());
+    return ERR_OK;
 }
 } // AppExecFwk
 } // OHOS
