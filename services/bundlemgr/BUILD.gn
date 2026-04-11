@@ -397,7 +397,10 @@ ohos_shared_library("libbms") {
   }
 
   if (distributed_bundle_framework) {
-    external_deps += [ "distributed_bundle_framework:dbms_fwk" ]
+    external_deps += [
+      "device_manager:devicemanagersdk",
+      "distributed_bundle_framework:dbms_fwk",
+    ]
     defines += [ "DISTRIBUTED_BUNDLE_FRAMEWORK" ]
   }
 

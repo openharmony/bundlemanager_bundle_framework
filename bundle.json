@@ -53,6 +53,7 @@
                 "config_policy",
                 "c_utils",
                 "device_info_manager",
+                "device_manager",
                 "device_usage_statistics",
                 "display_manager",
                 "ecological_rule_manager",
