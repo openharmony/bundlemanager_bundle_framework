@@ -121,6 +121,7 @@ public:
     std::vector<std::string> resDeviceID;
     std::vector<int> grantStatus;
     std::vector<int> grantFlags;
+    std::string feature;
 };
 
 class HapInfoParams final {

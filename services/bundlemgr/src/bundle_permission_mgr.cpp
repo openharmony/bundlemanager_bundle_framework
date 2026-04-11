@@ -234,6 +234,9 @@ std::vector<AccessToken::PermissionStateFull> BundlePermissionMgr::GetPermission
             perState.resDeviceID.emplace_back(innerBundleInfo.GetBaseApplicationInfo().deviceId);
             perState.grantStatus.emplace_back(AccessToken::PermissionState::PERMISSION_DENIED);
             perState.grantFlags.emplace_back(AccessToken::PermissionFlag::PERMISSION_DEFAULT_FLAG);
+            if (!reqPermission.requireFeature.empty()) {
+                perState.feature = reqPermission.requireFeature;
+            }
             permStateFullList.emplace_back(perState);
         }
     } else {
