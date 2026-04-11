@@ -86,6 +86,7 @@ bundle_install_sources = [
   "${services_path}/bundlemgr/src/pre_install_bundle_info.cpp",
   "${services_path}/bundlemgr/src/pre_install_exception_mgr.cpp",
   "${services_path}/bundlemgr/src/sandbox_app/bundle_sandbox_app_helper.cpp",
+  "${services_path}/bundlemgr/src/share_file_helper.cpp",
   "${services_path}/bundlemgr/src/shared/inner_shared_bundle_installer.cpp",
   "${services_path}/bundlemgr/src/shared/shared_bundle_installer.cpp",
   "${services_path}/bundlemgr/src/status_receiver_proxy.cpp",

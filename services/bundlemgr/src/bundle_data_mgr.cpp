@@ -9817,6 +9817,41 @@ ErrCode BundleDataMgr::GetJsonProfile(ProfileType profileType, const std::string
     return GetJsonProfileByExtractor(moduleInfo->hapPath, profilePath, profile);
 }
 
+ErrCode BundleDataMgr::GetShareFilesJsonFromHap(const std::string &hapPath, const InnerModuleInfo &moduleInfo,
+    std::string &jsonContent) const
+{
+    APP_LOGD("GetShareFilesJsonFromHap: hapPath=%{private}s, moduleName=%{public}s",
+        hapPath.c_str(), moduleInfo.moduleName.c_str());
+
+    // 1. 检查 shareFiles 配置是否为空
+    if (moduleInfo.shareFiles.empty()) {
+        jsonContent = "";
+        APP_LOGD("shareFiles config is empty for module: %{public}s", moduleInfo.moduleName.c_str());
+        return ERR_OK;
+    }
+
+    // 2. 利用已有的 GetProfilePath 方法获取完整文件路径
+    // 注意：GetProfilePath 会检查 isEntry，只处理 entry 模块
+    std::string profilePath = GetProfilePath(ProfileType::SHARE_FILES_PROFILE, moduleInfo);
+    if (profilePath.empty()) {
+        APP_LOGD("failed to get shareFiles profile path for module: %{public}s",
+            moduleInfo.moduleName.c_str());
+        return ERR_BUNDLE_MANAGER_PROFILE_NOT_EXIST;
+    }
+
+    // 3. 利用已有的 GetJsonProfileByExtractor 方法提取文件内容
+    ErrCode ret = GetJsonProfileByExtractor(hapPath, profilePath, jsonContent);
+    if (ret != ERR_OK) {
+        APP_LOGD("failed to extract shareFiles json for module: %{public}s, err=%{public}d",
+            moduleInfo.moduleName.c_str(), ret);
+        return ret;
+    }
+
+    APP_LOGD("successfully extracted shareFiles json for module: %{public}s, %{public}s",
+        moduleInfo.moduleName.c_str(), jsonContent.c_str());
+    return ERR_OK;
+}
+
 ErrCode __attribute__((no_sanitize("cfi"))) BundleDataMgr::GetJsonProfileByExtractor(const std::string &hapPath,
     const std::string &profilePath, std::string &profile) const
 {

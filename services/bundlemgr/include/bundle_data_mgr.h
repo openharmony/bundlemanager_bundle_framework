@@ -1089,6 +1089,8 @@ public:
     void DeleteGroupDirsForException(const InnerBundleInfo &oldInfo, int32_t userId) const;
     ErrCode GetJsonProfile(ProfileType profileType, const std::string &bundleName, const std::string &moduleName,
         std::string &profile, int32_t userId) const;
+    ErrCode GetShareFilesJsonFromHap(const std::string &hapPath, const InnerModuleInfo &moduleInfo,
+        std::string &jsonContent) const;
     ErrCode GetJsonProfileByExtractor(const std::string &hapPath, const std::string &profilePath,
         std::string &profile) const;
     bool GetOldAppIds(const std::string &bundleName, std::vector<std::string> &appIds) const;
