@@ -582,6 +582,11 @@ ohos_shared_library("libbms") {
     sources += user_auth
   }
 
+  if (bms_accesscontrol_sandbox_manager) {
+    external_deps += [ "sandbox_manager:libsandbox_manager_sdk" ]
+    defines += [ "BMS_ACCESSCONTROL_SANDBOX_MANAGER" ]
+  }
+
   subsystem_name = "bundlemanager"
   part_name = "bundle_framework"
 }
