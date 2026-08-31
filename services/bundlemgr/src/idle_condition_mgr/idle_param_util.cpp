@@ -15,9 +15,12 @@
 
 #include "idle_param_util.h"
 
-#include <cstdlib>
+#include <charconv>
+#include <cstdint>
 #include <fstream>
+#include <limits>
 #include <sstream>
+#include <system_error>
 
 #include "app_log_wrapper.h"
 
@@ -34,6 +37,23 @@ constexpr const char* APP_DATA_SCAN_FEATURE_OFF = "app_data_scan_feature_off";
 constexpr const char* FILE_CATEGORY_SCAN_FEATURE_OFF = "file_category_scan_feature_off";
 // the number of digits extracted from the fixed format string "x.x.x.x"
 constexpr int32_t VERSION_LEN = 4;
+
+bool ParseVersionPart(const std::string &str, int32_t &value)
+{
+    if (str.empty()) {
+        return false;
+    }
+    uint32_t parsed = 0;
+    const char *first = str.data();
+    const char *last = first + str.size();
+    auto [ptr, ec] = std::from_chars(first, last, parsed);
+    if (ec != std::errc{} || ptr != last ||
+        parsed > static_cast<uint32_t>(std::numeric_limits<int32_t>::max())) {
+        return false;
+    }
+    value = static_cast<int32_t>(parsed);
+    return true;
+}
 }
 
 bool IdleParamUtil::IsRelabelFeatureDisabled()
@@ -154,11 +174,12 @@ std::vector<int32_t> IdleParamUtil::GetVersionNums(const std::string& filePath)
     }
     std::vector<int32_t> versionNums;
     for (const auto& part : versionParts) {
-        if (!IsNumber(part)) {
+        int32_t num = 0;
+        if (!ParseVersionPart(part, num)) {
             APP_LOGE("not a number: %{public}s in %{public}s", part.c_str(), filePath.c_str());
             return {};
         }
-        versionNums.push_back(atoi(part.c_str()));
+        versionNums.push_back(num);
     }
     return versionNums;
 }
@@ -212,15 +233,9 @@ void IdleParamUtil::Trim(std::string& inputStr)
 
 bool IdleParamUtil::IsNumber(const std::string &str)
 {
-    if (str.empty()) {
-        return false;
-    }
-    for (char c : str) {
-        if (!std::isdigit(c)) {
-            return false;
-        }
-    }
-    return true;
+    int32_t dummy = 0;
+    return ParseVersionPart(str, dummy);
 }
+
 } // namespace AppExecFwk
 } // namespace OHOS
